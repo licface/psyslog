@@ -23,6 +23,7 @@ from datetime import datetime
 import syslog
 import time
 import ConfigParser
+from debug import debug
 PID = os.getpid()
 HOST, PORT = "0.0.0.0", 514
 
@@ -689,80 +690,88 @@ class Psyslog(object):
         log_file_name = self.read_config('LOGS', 'log_file_name')
         max_line = self.read_config('LOGS', 'max_line')
         rotate = self.read_config('LOGS', 'rotate')
+        debugger = self.read_config('DEBUG', 'debug')
+        debugger_server = self.read_config('DEBUG', 'debug_server')
         show_priority_number = self.read_config('GENERAL', 'show_priority_number')
 
-        # print "show_priority =", show_priority
-        # print "send_queue =", send_queue
-        # print "save_to_database =", save_to_database
-        # print "save_to_file =", save_to_file
-        # print "database_type =", database_type
-        # print "max_line =", max_line
-        # print "show_priority_number =", show_priority_number
+        debug(show_priority1=show_priority)
+        debug(send_queue1=send_queue)
+        debug(save_to_file1=save_to_file)
+        debug(save_to_database1=save_to_database)
+        debug(database_type1=database_type)
+        debug(log_file_name1=log_file_name)
+        debug(max_line1=max_line)
+        debug(rotate1=rotate)
+        debug(debugger1=debugger)
+        debug(debugger_server1=debugger_server)
+        debug(show_priority_number1=show_priority_number)
 
+        if not debugger:
+            self.write_config('DEBUG', 'debug', '')
+        else:
+            debugger = bool(debugger)
+        if not debugger_server:
+            self.write_config('DEBUG', 'debugger_server', '127.0.0.1:50001')
+            os.environ.update({'DEBUG_SERVER':1})    
+            os.environ.update({'DEBUGGER_SERVER':'127.0.0.1:50001'})
+        else:
+            os.environ.update({'DEBUG_SERVER':1})    
+            os.environ.update({'DEBUGGER_SERVER':debugger_server})
+        
         if not show_priority:
-            # print "NOT show_priority"
             self.write_config('GENERAL', 'show_priority', '')
         else:
             show_priority = bool(show_priority)
         if not send_queue:
-            # print "NOT send_queue"
             self.write_config('GENERAL', 'send_queue', '')
         else:
             send_queue = bool(send_queue)
         if not save_to_database:
-            # print "NOT save_to_database"
             self.write_config('GENERAL', 'save_to_database', '')
         else:
             save_to_database = bool(save_to_database)    
         if not save_to_file:
-            # print "NOT save_to_file"
             self.write_config('GENERAL', 'save_to_file', '')
         else:
             save_to_file = bool(save_to_file)
         if not database_type:
-            # print "NOT database_type"
             self.write_config('DATABASE', 'database_type', 'sqlite')
         if not log_file_name:
-            # print "Not log_file_name"
             self.write_config('LOGS', 'log_file_name', 'psyslog.log')
         if not max_line:
-            # print "NOT max_line"
             self.write_config('LOGS', 'max_line', 9999)
         if not rotate:
-            # print "NOT rotate"
             self.write_config('LOGS', 'rotate', '1M')
         if not show_priority_number:
-            # print "NOT show_priority_number"
             self.write_config('GENERAL', 'show_priority_number', '')
         else:
             show_priority_number = bool(show_priority_number)
 
-        # sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        debug(show_priority2=show_priority)
+        debug(send_queue2=send_queue)
+        debug(save_to_file2=save_to_file)
+        debug(save_to_database2=save_to_database)
+        debug(database_type2=database_type)
+        debug(log_file_name2=log_file_name)
+        debug(max_line2=max_line)
+        debug(rotate2=rotate)
+        debug(debugger2=debugger)
+        debug(debugger_server2=debugger_server)
+        debug(show_priority_number2=show_priority_number)
 
         try:
-            # sock.bind((host, port))
-            # print "Syslog Client Bind: %s:%s [%s]" %(self.make_colors(host, 'green'), self.make_colors(str(port), 'cyan'), PID)
-            # sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            
-            # while 1:
-            #     data, client_address = sock.recvfrom(65565)
-            #     self.CLIENT_ADDRESS = client_address
-            #     if data:
-            #         if data == 'EXIT':
-            #             sys.exit('server shutdown ....')
-
             client_address = self.make_colors(client_address[0], 'cyan')
             times = self.make_colors(self.convert_time(int(time.time())), 'white', 'black')
-            # data = bytes.decode(self.request[0].strip(), 'utf-8')
             data_split = re.split('<|>', data, 2)
-            # print "data_split =",data_split
+            debug(data_split=data_split)
             if data_split[0] == u'':
                 number = data_split[1]
                 message = " ".join(data_split[2:]).strip()
             else:
                 number = data_split[0]
                 message = " ".join(data_split[1:]).strip()
-            # print "number =", number
+            debug(number=number)
+            debug(message=message)
             if show_priority:
                 facility_string = syslog.FACILITY.get(int(self.convert_priority_to_severity(number)))
                 if show_priority_number:
@@ -770,13 +779,16 @@ class Psyslog(object):
                 else:
                     data = self.coloring(number, message, facility_string)
             data = self.coloring(number, data)
+            debug(data=data)
             laengde = len(data)
+            debug(laengde=laengde)
             if laengde > 4:
                 newLogString = "%s%s%s %s %s [%s]" % (self.make_colors(lineNumber, 'yellow'), self.make_colors('@', 'red'), times, client_address, data, str(pid))
                 if send_queue:
                     newLogString = "%s@%s %s %s\n" % (lineNumber, times, client_address[0], data)
                     self.sent_to_broker(newLogString)
                 if lineNumber > max_line:
+                    debug(lineNumber=lineNumber)
                     if sys.platform == 'win32':
                         os.system('cls')
                     else:
