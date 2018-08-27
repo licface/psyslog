@@ -712,10 +712,10 @@ class Psyslog(object):
             debugger = bool(debugger)
         if not debugger_server:
             self.write_config('DEBUG', 'debugger_server', '127.0.0.1:50001')
-            os.environ.update({'DEBUG_SERVER':1})    
+            os.environ.update({'DEBUG_SERVER':'1'})    
             os.environ.update({'DEBUGGER_SERVER':'127.0.0.1:50001'})
         else:
-            os.environ.update({'DEBUG_SERVER':1})    
+            os.environ.update({'DEBUG_SERVER':'1'})    
             os.environ.update({'DEBUGGER_SERVER':debugger_server})
         
         if not show_priority:
